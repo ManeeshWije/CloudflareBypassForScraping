@@ -1,10 +1,10 @@
-# Use an image with a desktop environment
-FROM kasmweb/desktop:1.16.0-rolling-daily
+# Use an ARM-compatible base image with desktop environment
+FROM arm64v8/ubuntu:22.04
 
 # Set environment variables to avoid interactive prompts during build
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install necessary packages for Xvfb and pyvirtualdisplay
+# Install necessary packages including Chromium browser
 USER root
 RUN apt-get update && \
     apt-get install -y \
@@ -33,12 +33,18 @@ RUN apt-get update && \
         libasound2 \
         libcurl4 \
         libgbm1 \
+        chromium-browser \
+        chromium-chromedriver \
+        tigervnc-standalone-server \
+        tigervnc-common \
+        novnc \
+        websockify \
+        supervisor \
+        openbox \
         && rm -rf /var/lib/apt/lists/*
 
-# Download and install specific version of Google Chrome
-RUN wget https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_126.0.6478.126-1_amd64.deb && \
-    dpkg -i google-chrome-stable_126.0.6478.126-1_amd64.deb && \
-    rm google-chrome-stable_126.0.6478.126-1_amd64.deb
+# Create symlink for chrome/chromium compatibility
+RUN ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
 
 # Install Python dependencies including pyvirtualdisplay
 RUN pip3 install --upgrade pip
@@ -63,3 +69,4 @@ RUN chmod +x /docker_startup.sh
 
 # Set the entrypoint directly to the startup script
 ENTRYPOINT ["/docker_startup.sh"]
+
